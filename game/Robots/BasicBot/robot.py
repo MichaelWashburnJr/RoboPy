@@ -1,6 +1,8 @@
 import pyglet
 import os
 from math import sin, cos, atan2, radians, degrees, pi
+from threading import Thread
+from time import sleep
 
 ROBOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -10,6 +12,7 @@ class BasicBot():
     """
 
     def __init__(self, **kwargs):
+        self.is_running = False
         self.x = kwargs.get('x', 0)
         self.y = kwargs.get('y', 0)
         self.width = 50
@@ -23,6 +26,40 @@ class BasicBot():
         # When the bot is X degrees in the right direction it can move forward
         self.turn_move_threshold = 90
         self.speed = 2 # pixels per move
+        self.thread = None
+
+    def start(self):
+        """
+        This function creates a new thread for this Robot to process on. The new
+        thread enters the run loop for this robot, and the old thread returns to the caller
+        with a reference to the new thread.
+        """
+        self.is_running = True
+        # Enter Run Loop
+        self.thread = Thread(target=self.run)
+        self.thread.start()
+        return self.thread
+
+    def stop(self):
+        """
+        This function can be called from another thread to stop this robot.
+        """
+        self.is_running = False
+        self.thread.join()
+
+    def run(self):
+        """
+        This is the run loop for the robot.
+        Note: AI Logic should NOT go here. The make_move() function will be called each
+        iteration to make a move.
+        """
+        while self.is_running:
+            self.make_move()
+            sleep(.02)
+
+    def make_move(self):
+        """Determine how to move and do it."""
+        self.move_to_point(400,400)
 
     def turn_to_point(self, x, y):
         """

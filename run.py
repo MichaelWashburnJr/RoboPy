@@ -15,6 +15,10 @@ x = [70, 570, 570, 70]
 y = [410, 410, 70, 70]
 i = 0
 
+
+for bot in game.bots:
+    bot.start()
+
 while True:
     pyglet.clock.tick()
 
@@ -23,7 +27,3 @@ while True:
         window.dispatch_events()
         window.dispatch_event('on_draw')
         window.flip()
-
-
-    if game.bot.move_to_point(x[i],y[i]):
-        i = (i + 1) % 4
