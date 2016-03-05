@@ -1,8 +1,8 @@
 import pyglet
 import os
-from math import sin, cos, atan2, radians, degrees, pi
-from threading import Thread
-from time import sleep
+import math
+from game.engine.objects import Circle
+from game.engine.physics.collisions import is_circle_collision
 
 ROBOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -12,120 +12,21 @@ class BasicBot():
     """
 
     def __init__(self, **kwargs):
-        self.is_running = False
-        self.x = kwargs.get('x', 0)
-        self.y = kwargs.get('y', 0)
-        self.width = 50
-        self.height=50
         self.name = kwargs.get('name', "BasicBot")
         self.image = pyglet.image.load(os.path.join(ROBOT_DIR, "robot.png"))
         self.image.anchor_x = self.image.width // 2
         self.image.anchor_y = self.image.height // 2
         self.angle = 0; #0 <= angle < 360
-        self.turn_speed = 1 # degrees per move
         # When the bot is X degrees in the right direction it can move forward
-        self.turn_move_threshold = 90
-        self.speed = 2 # pixels per move
-        self.thread = None
-
-    def start(self):
-        """
-        This function creates a new thread for this Robot to process on. The new
-        thread enters the run loop for this robot, and the old thread returns to the caller
-        with a reference to the new thread.
-        """
-        self.is_running = True
-        # Enter Run Loop
-        self.thread = Thread(target=self.run)
-        self.thread.start()
-        return self.thread
-
-    def stop(self):
-        """
-        This function can be called from another thread to stop this robot.
-        """
-        self.is_running = False
-        self.thread.join()
-
-    def run(self):
-        """
-        This is the run loop for the robot.
-        Note: AI Logic should NOT go here. The make_move() function will be called each
-        iteration to make a move.
-        """
-        while self.is_running:
-            self.make_move()
-            sleep(.02)
-
-    def make_move(self):
-        """Determine how to move and do it."""
-        self.move_to_point(400,400)
-
-    def turn_to_point(self, x, y):
-        """
-        Find the angle between the current coordinates and the given point.
-        Once found, increment this robots angle towards that point.
-        Returns the difference between the target angle and current angle.
-        """
-        # Find the angle between this robot and the point
-        dx = x - self.x
-        dy = y - self.y
-        r = atan2(-dy, dx)
-        r %= 2*pi
-        degs = degrees(r)
-
-        if degs != self.angle:
-            # See if it is easier to go clocwise or counter clockwise
-            cw = (degs - self.angle) % 360
-            ccw = (self.angle - degs) % 360
-
-            if cw <= ccw:
-                # Turn Clockwise
-                if cw >= self.turn_speed:
-                    self.angle += self.turn_speed
-                else:
-                    self.angle = degs
-            else:
-                # Turn Counter Clockwise
-                if ccw > self.turn_speed:
-                    self.angle -= self.turn_speed
-                else:
-                    self.angle = degs
-            # Return space between angle and target angle
-        return degs - self.angle
-
-    def move_to_point(self, x, y):
-        """
-        First """
-        if (self.x != x) or (self.y != y):
-            deg_delta = self.turn_to_point(x,y)
-            # If we are in the right direction, start moving
-            if deg_delta == 0:
-                dx = self.speed * cos(radians(self.angle))
-                dy = self.speed * sin(radians(self.angle))
-                # Make the move
-                if abs(x - self.x) > abs(dx):
-                    self.x += dx
-                else:
-                    self.x = x
-                if abs(y - self.y) > abs(dy):
-                    self.y -= dy
-                else:
-                    self.y = y
-
-        # Return True if the robot is at the point
-        return (self.x == x) and (self.y == y)
-
-
-
+        self.object = Circle(x=kwargs.get('x',0), y=kwargs.get('y',0))
 
     def sprite(self,**kwargs):
         """Return the Sprite object for this bot at its current position"""
         batch = kwargs.get('batch')
         sprite = None
         if not batch:
-            sprite = pyglet.sprite.Sprite(self.image, x=self.x, y=self.y)
+            sprite = pyglet.sprite.Sprite(self.image, x=self.object.x, y=self.object.y)
         else:
-            sprite = pyglet.sprite.Sprite(self.image, x=self.x, y=self.y, batch=batch)
-        sprite.rotation = self.angle
+            sprite = pyglet.sprite.Sprite(self.image, x=self.object.x, y=self.object.y, batch=batch)
+        sprite.rotation = math.degrees(self.object.angle)
         return sprite

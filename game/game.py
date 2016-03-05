@@ -1,6 +1,6 @@
 import pyglet
-from threading import Thread
-from .Robots.BasicBot import BasicBot
+from .arena import Arena
+from .robots.BasicBot import BasicBot
 
 class Game():
     """
@@ -12,17 +12,14 @@ class Game():
         # Grab Values from kwargs
         self.width = kwargs.get('width', 640)
         self.height = kwargs.get('height', 480)
+        self.arena = Arena()
 
         # Initialize pyglet
-        self.bots = [
-            BasicBot(x=50, y=50, name="BasicBot1"),
-            BasicBot(x=400, y=300, name="BasicBot2")
-        ]
+        self.bot = BasicBot(x=50, y=50, name="BasicBot")
 
     def draw(self):
         """Draw everything on the screen"""
         batch = pyglet.graphics.Batch()
         sprites = []
-        for bot in self.bots:
-            sprites.append(bot.sprite(batch=batch))
+        sprite = self.bot.sprite(batch=batch)
         batch.draw()
